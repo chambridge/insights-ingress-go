@@ -67,6 +67,7 @@ func main() {
 		middleware.RealIP,
 		middleware.Recoverer,
 	)
+
 	stager := getStager(*cfg)
 
 	kafkaCfg := kafka.Config{
@@ -126,9 +127,15 @@ func main() {
 		sub.With(identity.EnforceIdentityWithLogger(identityErrorLogFunc)).Get("/", lubDub)
 		sub.With(upload.ResponseMetricsMiddleware, identity.EnforceIdentityWithLogger(identityErrorLogFunc), middleware.Logger).Post("/upload", handler)
 		sub.With(identity.EnforceIdentityWithLogger(identityErrorLogFunc)).Get("/track/{requestID}", trackEndpoint)
+		if len(cfg.StorageConfig.StorageFileSystemPath) > 0 {
+			sub.With(identity.EnforceIdentityWithLogger(identityErrorLogFunc)).Get("/download/{requestID}", downloadEndpoint)
+		}
 	} else {
 		sub.Get("/", lubDub)
 		sub.With(upload.ResponseMetricsMiddleware, middleware.Logger).Post("/upload", handler)
+		if len(cfg.StorageConfig.StorageFileSystemPath) > 0 {
+			sub.With(identity.EnforceIdentityWithLogger(identityErrorLogFunc)).Get("/download/{requestID}", downloadEndpoint)
+		}
 	}
 	sub.With(middleware.Logger).Get("/version", version.GetVersion)
 	sub.With(middleware.Logger).Get("/openapi.json", apiSpec)

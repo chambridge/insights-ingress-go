@@ -185,4 +185,25 @@ var _ = Describe("Upload", func() {
 			})
 		})
 	})
+
+	Describe("Posting a file to /upload", func() {
+		Context("with a valid advisor Content-Type and no metadata", func() {
+			It("should return HTTP 201", func() {
+				boiler(http.StatusCreated, &FilePart{
+					Name:        "file",
+					Content:     "testing",
+					ContentType: "application/vnd.redhat.advisor.test"})
+			})
+		})
+
+		Context("with a valid Content-Type and no metadata", func() {
+			It("should invoke the stager", func() {
+				boiler(http.StatusAccepted, &FilePart{
+					Name:        "file",
+					Content:     "testing",
+					ContentType: "application/vnd.redhat.unit.test"})
+				Expect(stager.StageCalled()).To(BeTrue())
+			})
+		})
+	})
 })
